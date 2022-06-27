@@ -26,22 +26,26 @@ fi
 
 #URLS - Available compatible cloud-init images to download - Debina 9/10 and Ubuntu 18.04/20.04
 DEBIAN_10_URL="https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-amd64.raw"
-DEBIAN_9_URL="https://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.raw"
+DEBIAN_9_URL="https://cloud.debian.org/images/cloud/OpenStack/current-9/debian-9-openstack-amd64.raw"
+DEBIAN_11_URL="https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-amd64.raw"
 UBUNTU_1804_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
 UBUNTU_2004_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
 UBUNTU_2204_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
-OPENSUSE_152_URL="https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.2/images/openSUSE-Leap-15.2-OpenStack.x86_64.qcow2"
-CENTOS_8_URL="https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2"
+OPENSUSE_154_URL="https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.x86_64-NoCloud.qcow2"
+CENTOS_8_stream_URL="https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-20220125.1.x86_64.qcow2"
+CENTOS_9_stream_URL="https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-20220621.1.x86_64.qcow2"
 ####
 echo "Available images are: "
 echo -n "
 1 - Debian 9 - Stretch
 2 - Debian 10 - Buster
-3 - Ubuntu 18.04 LTS - Bionic
-4 - Ubuntu 20.04 LTS - Focal
-5 - Ubuntu 22.04 LTS - jammy
-6 - OpenSUSE LEAP 15.02
-7 - CentOS 8
+3 - Debian 11 - bullseye
+4 - Ubuntu 18.04 LTS - Bionic
+5 - Ubuntu 20.04 LTS - Focal
+6 - Ubuntu 22.04 LTS - jammy
+7 - OpenSUSE LEAP 15.4
+8 - CentOS 8 stream
+9 - CentOS 9 stream - not support cpu kvm64 or qemu64
 "
 echo -n "Choose a Image template to install: "
 read OPT_IMAGE_TEMPLATE
@@ -60,36 +64,49 @@ case $OPT_IMAGE_TEMPLATE in
         fi
         ;;
     3)
+        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${DEBIAN_11_URL##*/}"
+        if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
+            wget -c $DEBIAN_11_URL -O $TEMPLATE_VM_CI_IMAGE
+        fi
+        ;;
+    4)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_1804_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_1804_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    4)
+    5)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2004_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_2004_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    5)
+    6)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2204_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_2204_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
         
-    6)
-        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${OPENSUSE_152_URL##*/}"
-        if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-            wget -c $OPENSUSE_152_URL -O $TEMPLATE_VM_CI_IMAGE
-        fi
-        ;;
     7)
-        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${CENTOS_8_URL##*/}"
+        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${OPENSUSE_154_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-            wget -c $CENTOS_8_URL -O $TEMPLATE_VM_CI_IMAGE
+            wget -c $OPENSUSE_154_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
+    8)
+        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${CENTOS_8_stream_URL##*/}"
+        if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
+            wget -c $CENTOS_8_stream_URL -O $TEMPLATE_VM_CI_IMAGE
+        fi
+        ;;
+    9)
+        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${CENTOS_9_stream_URL##*/}"
+        if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
+            wget -c $CENTOS_9_stream_URL -O $TEMPLATE_VM_CI_IMAGE
+        fi
+        ;;
+
     *)
         clear
         echo "[Fail] - Unknown option - Run script again then choose a valid option."
