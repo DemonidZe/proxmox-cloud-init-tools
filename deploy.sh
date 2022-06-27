@@ -5,7 +5,7 @@
 #description     :This script will deploy Cloud-init images on Proxmox VE.
 #author          :Ananias Filho aka kram3r
 #date            :2021-02-05
-#version         :0.9
+#version         :1.0
 #usage           :bash deploy.sh
 #bash_version    :GNU bash, versão 5.0.17(1)-release (x86_64-pc-linux-gnu)
 ############################################################################
@@ -26,8 +26,6 @@ if [ ! -d $IMG_PATH ] ; then
 fi
 
 #URLS - Available compatible cloud-init images to download - Debina 9/10 and Ubuntu 18.04/20.04
-#DEBIAN_10_URL="https://cdimage.debian.org/cdimage/openstack/current-10/debian-10-openstack-amd64.raw"
-#DEBIAN_10_URL="https://cloud.debian.org/images/cloud/buster/latest/debian-10-genericcloud-amd64.raw"
 DEBIAN_10_URL="https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-amd64.raw"
 DEBIAN_9_URL="https://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.raw"
 UBUNTU_1804_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
