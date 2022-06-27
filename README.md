@@ -6,6 +6,7 @@ ShellScript tools to deploy VM cloud-init in Proxmox Virtual Environment (PVE)
 - PVE 6.1 **[OK] - Tested**
 - PVE 6.2 **[OK] - Tested**
 - PVE 6.3 **[OK] - Tested**
+- PVE 7.2 **[OK] - Tested**
 
 ### Features
 1. Auto cloud images download
@@ -13,7 +14,9 @@ ShellScript tools to deploy VM cloud-init in Proxmox Virtual Environment (PVE)
 - Debian 10 - Buster
 - Ubuntu Server 18.04 LTS - Bionic
 - Ubuntu Server 20.04 LTS - Focal
+- Ubuntu Server 22.04 LTS - jammy
 - OpenSUSE LEAP 15.2
+- CENTOS 8
 2. Set VM Hostname
 3. Set VM Description
 4. Memory (Available to select 2GB,4GB,8GB and 16GB)
