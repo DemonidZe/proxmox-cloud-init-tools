@@ -6,6 +6,7 @@ ShellScript tools to deploy VM cloud-init in Proxmox Virtual Environment (PVE)
 - PVE 6.3 **[OK] - Tested**
 - PVE 6.4 **[OK] - Tested**
 - PVE 7.2 **[OK] - Tested**
+- PVE 7.4 **[OK] - Tested**
 
 ### Features
 1. Auto cloud images download
