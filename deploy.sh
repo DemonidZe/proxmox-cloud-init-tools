@@ -23,7 +23,7 @@ IMG_PATH="imgs"
 if [ ! -d $IMG_PATH ] ; then
     mkdir -p $IMG_PATH
 fi
-
+pvever=`pveversion | awk -F'[/]' '{print $2}' | awk -F'[-]' '{print $1}'`
 #URLS - Available compatible cloud-init images to download - Debina 9/10 and Ubuntu 18.04/20.04
 DEBIAN_10_URL="https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-amd64.raw"
 DEBIAN_9_URL="https://cloud.debian.org/images/cloud/OpenStack/current-9/debian-9-openstack-amd64.raw"
@@ -285,7 +285,14 @@ qm importdisk $TEMPLATE_VM_ID $TEMPLATE_VM_CI_IMAGE $TEMPLATE_VM_STORAGE > /dev/
 check_errors
 
 ACTION="Set disk controller and image"
-qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-pci --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0.raw,discard=on > /dev/null 2>&1
+if [[ "$pvever" > "7.3" ]]
+then 
+    qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-pci --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0.raw,discard=on > /dev/null 2>&1
+echo "ver 7.4 +"
+else
+    qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-pci --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0,discard=on > /dev/null 2>&1
+echo "old ver"
+fi
 check_errors
 
 ACTION="Set serial socket"
