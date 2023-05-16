@@ -205,15 +205,15 @@ select yn in "Yes" "No"; do
 done
 if [ $DHCP_USE != "Y" ] ;then
     ### VM IP
-    echo -n "Type VM IP Address (Example: 192.168.0.101): "
+    echo "Type VM IP Address (Example: 192.168.0.101): "
     read TEMPLATE_VM_IP_ADDR
     ### VM IP
-    echo -n "Type VM IP BIT MASK. Example: 24, 22, 16, 8 etc." 
-    echo -n "Your network bit mask: "
+    echo "Type VM IP BIT MASK. Example: 24, 22, 16, 8 etc." 
+    echo "Your network bit mask: "
     read TEMPLATE_VM_IP_NETMASK
     TEMPLATE_VM_IP="$TEMPLATE_VM_IP_ADDR/$TEMPLATE_VM_IP_NETMASK"
     ### VM GW
-    echo -n "Type Network Gateway IP Address. (Example: 192.168.0.1): "
+    echo "Type Network Gateway IP Address. (Example: 192.168.0.1): "
     read TEMPLATE_VM_GW
 fi
 ### VM TEMPLATE ID
@@ -285,7 +285,7 @@ qm importdisk $TEMPLATE_VM_ID $TEMPLATE_VM_CI_IMAGE $TEMPLATE_VM_STORAGE > /dev/
 check_errors
 
 ACTION="Set disk controller and image"
-qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-pci --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0,discard=on > /dev/null 2>&1
+qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-pci --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0,discard=on > /dev/null 2>&1
 check_errors
 
 ACTION="Set serial socket"
