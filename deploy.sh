@@ -338,6 +338,10 @@ ACTION="Set hotplug options"
 qm set $TEMPLATE_VM_ID --hotplug disk,network,usb > /dev/null 2>&1
 check_errors
 
+ACTION="Set tablet mode off"
+qm set $TEMPLATE_VM_ID --tablet 0 > /dev/null 2>&1
+check_errors
+
 #ACTION="Set vga display"
 #qm set $TEMPLATE_VM_ID --vga qxl > /dev/null 2>&1
 #check_errors
