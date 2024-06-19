@@ -25,12 +25,14 @@ if [ ! -d $IMG_PATH ] ; then
 fi
 pvever=`pveversion | awk -F'[/]' '{print $2}' | awk -F'[-]' '{print $1}'`
 #URLS - Available compatible cloud-init images to download - Debina 9/10 and Ubuntu 18.04/20.04
-DEBIAN_10_URL="https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-amd64.raw"
 DEBIAN_9_URL="https://cloud.debian.org/images/cloud/OpenStack/current-9/debian-9-openstack-amd64.raw"
+DEBIAN_10_URL="https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-amd64.raw"
 DEBIAN_11_URL="https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-amd64.raw"
+DEBIAN_12_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.raw"
 UBUNTU_1804_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
 UBUNTU_2004_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
 UBUNTU_2204_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+UBUNTU_2404_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
 OPENSUSE_154_URL="https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.x86_64-NoCloud.qcow2"
 CENTOS_8_stream_URL="https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-20220125.1.x86_64.qcow2"
 CENTOS_9_stream_URL="https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-20220621.1.x86_64.qcow2"
@@ -40,18 +42,20 @@ echo -n "
 1 - Debian 9 - Stretch
 2 - Debian 10 - Buster
 3 - Debian 11 - bullseye
-4 - Ubuntu 18.04 LTS - Bionic
-5 - Ubuntu 20.04 LTS - Focal
-6 - Ubuntu 22.04 LTS - jammy
-7 - OpenSUSE LEAP 15.4
-8 - CentOS 8 stream
-9 - CentOS 9 stream - not support cpu kvm64 or qemu64
+4 - Debian 12 - bookworm
+5 - Ubuntu 18.04 LTS - Bionic
+6 - Ubuntu 20.04 LTS - Focal
+7 - Ubuntu 22.04 LTS - jammy
+8 - Ubuntu 24.04 LTS - noble
+9 - OpenSUSE LEAP 15.4
+10 - CentOS 8 stream
+11 - CentOS 9 stream - not support cpu kvm64 or qemu64
 "
 echo -n "Choose a Image template to install: "
 read OPT_IMAGE_TEMPLATE
 
 case $OPT_IMAGE_TEMPLATE in
-    1)
+       1)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${DEBIAN_9_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $DEBIAN_9_URL -O $TEMPLATE_VM_CI_IMAGE
@@ -70,37 +74,49 @@ case $OPT_IMAGE_TEMPLATE in
         fi
         ;;
     4)
+        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${DEBIAN_12_URL##*/}"
+        if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
+            wget -c $DEBIAN_12_URL -O $TEMPLATE_VM_CI_IMAGE
+        fi
+        ;;
+    5)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_1804_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_1804_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    5)
+    6)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2004_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_2004_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    6)
+    7)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2204_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_2204_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-        
-    7)
+    8)
+        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2404_URL##*/}"
+        if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
+            wget -c $UBUNTU_2404_URL -O $TEMPLATE_VM_CI_IMAGE
+        fi
+        ;;
+
+    9)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${OPENSUSE_154_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $OPENSUSE_154_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    8)
+    10)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${CENTOS_8_stream_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $CENTOS_8_stream_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    9)
+    11)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${CENTOS_9_stream_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $CENTOS_9_stream_URL -O $TEMPLATE_VM_CI_IMAGE
@@ -160,6 +176,14 @@ read TEMPLATE_VM_CORES
 echo -n "Type # of VM CPU Sockets: (Example: 1)"
 read TEMPLATE_VM_SOCKETS
 
+echo "Use NUMA?"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) TEMPLATE_NUMA=1; break;;
+        No ) TEMPLATE_NUMA=0; break;;
+    esac
+done
+
 ### VM Storage
 clear
 echo "########## STORAGE ##########"
@@ -199,11 +223,11 @@ read TEMPLATE_VM_BRIDGE
 echo "Use DHCP?"
 select yn in "Yes" "No"; do
     case $yn in
-        Yes ) DHCP_USE="Y"; break;;
-        No ) echo "";;
+        Yes ) DHCP_USE=1; break;;
+        No ) DHCP_USE=0; break;;
     esac
 done
-if [ $DHCP_USE != "Y" ] ;then
+if [ $DHCP_USE == "0" ] ;then
     ### VM IP
     echo "Type VM IP Address (Example: 192.168.0.101): "
     read TEMPLATE_VM_IP_ADDR
@@ -227,16 +251,17 @@ echo ""
 echo "######### VM DETAILS ##########"
 echo ""
 echo Name: $TEMPLATE_VM_NAME 
-echo Description $TEMPLATE_VM_DESCRIPTION 
+echo Description: $TEMPLATE_VM_DESCRIPTION 
 echo Memory:  $TEMPLATE_VM_MEMORY 
 echo Cores: $TEMPLATE_VM_CORES
 echo Sockets: $TEMPLATE_VM_SOCKETS
+echo NUMA: $TEMPLATE_NUMA
 echo Template Image: $TEMPLATE_VM_CI_IMAGE
 echo Storage: $TEMPLATE_VM_STORAGE
 echo User: $TEMPLATE_DEFAULT_USER
 echo Attached Bridge: $TEMPLATE_VM_BRIDGE
 echo IP Address/Network: $TEMPLATE_VM_IP
-echo Gateway $TEMPLATE_VM_GW
+echo Gateway: $TEMPLATE_VM_GW
 echo VM ID: $TEMPLATE_VM_ID
 
 
@@ -276,8 +301,10 @@ qm create $TEMPLATE_VM_ID \
     --net0 virtio,bridge=$TEMPLATE_VM_BRIDGE \
     --cores $TEMPLATE_VM_CORES \
     --sockets $TEMPLATE_VM_SOCKETS \
-    --kvm 1 \
-    --numa 1 > /dev/null 2>&1
+    --cpu x86-64-v2-AES \
+    --machine q35 \
+    --ostype l26 \
+    --numa $TEMPLATE_NUMA > /dev/null 2>&1
 check_errors
 
 ACTION="Import disk"
@@ -315,13 +342,13 @@ check_errors
 #qm set $TEMPLATE_VM_ID --vga qxl > /dev/null 2>&1
 #check_errors
 
-ACTION="Set machine type"
-qm set $TEMPLATE_VM_ID --machine q35 --ostype l26 > /dev/null 2>&1
-check_errors
+#ACTION="Set machine type"
+#qm set $TEMPLATE_VM_ID --machine q35 --ostype l26 > /dev/null 2>&1
+#check_errors
 
-ACTION="Set name to $TEMPLATE_VM_NAME"
-qm set $TEMPLATE_VM_ID --name $TEMPLATE_VM_NAME > /dev/null 2>&1
-check_errors
+#ACTION="Set name to $TEMPLATE_VM_NAME"
+#qm set $TEMPLATE_VM_ID --name $TEMPLATE_VM_NAME > /dev/null 2>&1
+#check_errors
 
 ACTION="Set default user to $TEMPLATE_DEFAULT_USER"
 qm set $TEMPLATE_VM_ID --ciuser $TEMPLATE_DEFAULT_USER > /dev/null 2>&1
@@ -361,7 +388,7 @@ echo "Do you wish to start this VM now?"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) qm start $TEMPLATE_VM_ID; break;;
-        No ) exit;;
+        No ) break;;
     esac
 done
 
