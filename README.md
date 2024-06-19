@@ -39,7 +39,7 @@ ShellScript tools to deploy VM cloud-init in Proxmox Virtual Environment (PVE)
 1. Login on your Proxmox VE server over SSH or Console Shell
 2. Download script
 ```
-wget https://raw.githubusercontent.com/DemonidZe/proxmox-cloud-init-tools-7.2/main/deploy.sh
+wget https://raw.githubusercontent.com/DemonidZe/proxmox-cloud-init-tools/main/deploy.sh
 ```
 3. Create authorized keys files
 ```
