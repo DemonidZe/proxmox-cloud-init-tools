@@ -4,8 +4,8 @@
 #title           :proxmox-cloud-init-tools
 #description     :This script will deploy Cloud-init images on Proxmox VE.
 #author          :Ananias Filho aka kram3r
-#date            :2022-06-27
-#version         :1.0
+#date            :2024-06-20
+#version         :2.0
 #usage           :bash deploy.sh
 ############################################################################
 
