@@ -235,7 +235,7 @@ read TEMPLATE_VM_STORAGE
 clear
 ### VM Disk Size
 echo ""
-echo -n "How much to increase the disk from 5gb (Example: 10G) or press enter: "
+echo -n "Set the disk size in Gb min 5G (Example 20G) or press enter: "
 read TEMPLATE_VM_DISKSIZE
 ### VM Default user
 clear
@@ -407,10 +407,10 @@ rm -f "$TEMPLATE_VM_CI_IMAGE"_tmp
 ACTION="Set disk controller and image"
 if [[ "$pvever" > "7.3" ]]
 then 
-qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0.raw,discard=on > /dev/null 2>&1
+qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0,discard=on > /dev/null 2>&1 
 #echo "ver 7.4 +"
 else
-qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0,discard=on > /dev/null 2>&1
+qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0.raw,discard=on > /dev/null 2>&1
 #echo "old ver"
 fi
 check_errors
