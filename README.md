@@ -37,11 +37,12 @@ ShellScript tools to deploy VM cloud-init in Proxmox Virtual Environment (PVE)
 
 ### Usage
 1. Login on your Proxmox VE server over SSH or Console Shell
-2. Download script
+2. to customize the image, the guestfs-tools package is required "apt install guestfs-tools"
+4. Download script
 ```
 wget https://raw.githubusercontent.com/DemonidZe/proxmox-cloud-init-tools/main/deploy.sh
 ```
-3. Create authorized keys files
+5. Create authorized keys files
 ```
 mkdir pub_keys
 ```
@@ -50,14 +51,14 @@ touch pub_keys/id_rsa.pub
 ```
 **copy your public ssh keys to pub/keys/id_rsa.pub file**
 
-4. Adjust permission, then run deploy.sh
+6. Adjust permission, then run deploy.sh
 ```
 chmod +x deploy.sh
 ```
 ```
 ./deploy.sh
 ```
-5. Follow instructions on screen.
+7. Follow instructions on screen.
 
 ### Important
 Before deploy VM using things script, upload your public ssh key to ./pub_keys/id_rsa.pub file.
