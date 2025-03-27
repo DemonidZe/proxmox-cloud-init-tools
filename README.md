@@ -50,9 +50,9 @@ wget https://raw.githubusercontent.com/DemonidZe/proxmox-cloud-init-tools/main/d
 mkdir pub_keys
 ```
 ```
-touch pub_keys/id_rsa.pub
+touch pub_keys/id_rsa.pub  or cp ~/.ssh/id_rsa.pub ~/pub_keys/
 ```
-**copy your public ssh keys to pub/keys/id_rsa.pub file**
+**copy your public ssh keys to pub_keys/id_rsa.pub file**
 
 5. Adjust permission, then run deploy.sh
 ```
