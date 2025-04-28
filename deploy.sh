@@ -375,6 +375,7 @@ cp -f "$TEMPLATE_VM_CI_IMAGE" "$TEMPLATE_VM_CI_IMAGE"_tmp
 	virt-edit -a "$TEMPLATE_VM_CI_IMAGE"_tmp /etc/ssh/sshd_config -e 's/#PasswordAuthentication no/PasswordAuthentication yes/'
 	virt-edit -a "$TEMPLATE_VM_CI_IMAGE"_tmp /etc/ssh/sshd_config -e 's/PasswordAuthentication no/PasswordAuthentication yes/'
 	virt-edit -a "$TEMPLATE_VM_CI_IMAGE"_tmp /etc/ssh/sshd_config -e 's/#PasswordAuthentication yes/PasswordAuthentication yes/'
+        virt-customize -a "$TEMPLATE_VM_CI_IMAGE"_tmp --delete '/etc/ssh/sshd_config.d/*'
 
     fi
 
