@@ -406,15 +406,15 @@ check_errors
 rm -f "$TEMPLATE_VM_CI_IMAGE"_tmp
 
 ACTION="Set disk controller and image"
-if [[ "$pvever" > "7.3" ]]
-then 
+#if [[ "$pvever" > "7.3" ]]
+#then 
 qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0,discard=on > /dev/null 2>&1 
 #echo "ver 7.4 +"
-else
+#else
 qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0.raw,discard=on > /dev/null 2>&1
 #echo "old ver"
-fi
-check_errors
+#fi
+#check_errors
 
 if [ $TEMPLATE_VLANID ]; then
 ACTION="Set VALNID"
