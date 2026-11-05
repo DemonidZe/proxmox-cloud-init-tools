@@ -8,23 +8,27 @@ ShellScript tools to deploy VM cloud-init in Proxmox Virtual Environment (PVE)
 - PVE 7.2 **[OK] - Tested**
 - PVE 7.4 **[OK] - Tested**
 - PVE 8.2 **[OK] - Tested**
-- 
+- PVE 9.x **[OK] - Tested**
+
 ### Features
 1. Auto cloud images download
 - Debian 9 - Stretch
 - Debian 10 - Buster
 - Debian 11 - bullseye
 - Debian 12 - bookworm
+- Debian 13 - trixie
 - Ubuntu Server 18.04 LTS - Bionic
 - Ubuntu Server 20.04 LTS - Focal
 - Ubuntu Server 22.04 LTS - jammy
 - Ubuntu Server 24.04 LTS - noble
-- OpenSUSE LEAP 15.2
+- Ubuntu Server 26.04 LTS - resolute
+- OpenSUSE LEAP 15.4
+- OpenSUSE LEAP 15.6
 - CENTOS 8 
 - CENTOS 9 - not support cpu kvm64 or qemu64
 2. Set VM Hostname
 3. Set VM Description
-4. Memory (Available to select 2GB,4GB,8GB and 16GB)
+4. Memory (Available to select 1GB, 2GB, 4GB, 8GB and 16GB)
 5. CPU Cores
 6. CPU Sockets
 7. Storage destination (Local, NFS, LVM/LVM-Thin, etc)
@@ -37,9 +41,9 @@ ShellScript tools to deploy VM cloud-init in Proxmox Virtual Environment (PVE)
 
 ### Usage
 1. Login on your Proxmox VE server over SSH or Console Shell
-2. To customize the image, the guestfs-tools package is required
+2. To customize the image, the `guestfs-tools` package (and `dhcpcd-base` on Proxmox VE 9) is required:
 ```
- apt install guestfs-tools
+ apt install guestfs-tools dhcpcd-base
 ```
 3. Download script
 ```
