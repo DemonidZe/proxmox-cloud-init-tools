@@ -4,8 +4,8 @@
 #title           :proxmox-cloud-init-tools
 #description     :This script will deploy Cloud-init images on Proxmox VE.
 #author          :Ananias Filho aka kram3r
-#date            :2024-06-20
-#version         :2.0
+#date            :2026-11-05
+#version         :2.1
 #usage           :bash deploy.sh
 ############################################################################
 
@@ -23,16 +23,29 @@ IMG_PATH="imgs"
 if [ ! -d $IMG_PATH ] ; then
     mkdir -p $IMG_PATH
 fi
-pvever=`pveversion | awk -F'[/]' '{print $2}' | awk -F'[-]' '{print $1}'`
+pvever=$(pveversion | awk -F'[/]' '{print $2}' | awk -F'[-]' '{print $1}')
+pve_major=$(echo "$pvever" | cut -d. -f1)
+
+### Check required packages for image customization (Proxmox VE 9 / Debian 13 requires dhcpcd-base for libguestfs network)
+if ! command -v virt-customize >/dev/null 2>&1; then
+    echo "Installing guestfs-tools..."
+    apt-get update && apt-get install -y guestfs-tools
+fi
+if [[ "$pve_major" -ge 9 ]] && ! dpkg -s dhcpcd-base >/dev/null 2>&1; then
+    echo "Installing dhcpcd-base (required for virt-customize networking on Proxmox VE 9)..."
+    apt-get update && apt-get install -y dhcpcd-base
+fi
 
 DEBIAN_9_URL="https://cloud.debian.org/images/cloud/OpenStack/current-9/debian-9-openstack-amd64.raw"
 DEBIAN_10_URL="https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-amd64.raw"
 DEBIAN_11_URL="https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-amd64.raw"
 DEBIAN_12_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.raw"
+DEBIAN_13_URL="https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.raw"
 UBUNTU_1804_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
 UBUNTU_2004_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
 UBUNTU_2204_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
 UBUNTU_2404_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+UBUNTU_2604_URL="https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img"
 OPENSUSE_154_URL="https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.x86_64-NoCloud.qcow2"
 OPENSUSE_156_URL="https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.x86_64-NoCloud.qcow2"
 CENTOS_8_stream_URL="https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-latest.x86_64.qcow2"
@@ -44,14 +57,16 @@ echo -n "
 2 - Debian 10 - Buster
 3 - Debian 11 - bullseye
 4 - Debian 12 - bookworm
-5 - Ubuntu 18.04 LTS - Bionic
-6 - Ubuntu 20.04 LTS - Focal
-7 - Ubuntu 22.04 LTS - jammy
-8 - Ubuntu 24.04 LTS - noble
-9 - OpenSUSE LEAP 15.4
-10 - OpenSUSE LEAP 15.6
-11 - CentOS 8 stream
-12 - CentOS 9 stream - not support cpu kvm64 or qemu64
+5 - Debian 13 - trixie
+6 - Ubuntu 18.04 LTS - Bionic
+7 - Ubuntu 20.04 LTS - Focal
+8 - Ubuntu 22.04 LTS - jammy
+9 - Ubuntu 24.04 LTS - noble
+10 - Ubuntu 26.04 LTS - resolute
+11 - OpenSUSE LEAP 15.4
+12 - OpenSUSE LEAP 15.6
+13 - CentOS 8 stream
+14 - CentOS 9 stream - not support cpu kvm64 or qemu64
 "
 echo -n "Choose a Image template to install: "
 read OPT_IMAGE_TEMPLATE
@@ -82,51 +97,60 @@ case $OPT_IMAGE_TEMPLATE in
         fi
         ;;
     5)
+        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${DEBIAN_13_URL##*/}"
+        if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
+            wget -c $DEBIAN_13_URL -O $TEMPLATE_VM_CI_IMAGE
+        fi
+        ;;
+    6)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_1804_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_1804_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    6)
+    7)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2004_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_2004_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    7)
+    8)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2204_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_2204_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    8)
+    9)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2404_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $UBUNTU_2404_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-
-    9)
+    10)
+        TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2604_URL##*/}"
+        if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
+            wget -c $UBUNTU_2604_URL -O $TEMPLATE_VM_CI_IMAGE
+        fi
+        ;;
+    11)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${OPENSUSE_154_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $OPENSUSE_154_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-
-    10)
+    12)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${OPENSUSE_156_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $OPENSUSE_156_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-
-    11)
+    13)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${CENTOS_8_stream_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $CENTOS_8_stream_URL -O $TEMPLATE_VM_CI_IMAGE
         fi
         ;;
-    12)
+    14)
         TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${CENTOS_9_stream_URL##*/}"
         if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
             wget -c $CENTOS_9_stream_URL -O $TEMPLATE_VM_CI_IMAGE
@@ -401,20 +425,23 @@ qm create $TEMPLATE_VM_ID \
 check_errors
 
 ACTION="Import disk"
-qm importdisk $TEMPLATE_VM_ID "$TEMPLATE_VM_CI_IMAGE"_tmp $TEMPLATE_VM_STORAGE > /dev/null 2>&1
+if [[ "$pve_major" -ge 8 ]]; then
+    qm disk import $TEMPLATE_VM_ID "$TEMPLATE_VM_CI_IMAGE"_tmp $TEMPLATE_VM_STORAGE > /dev/null 2>&1
+else
+    qm importdisk $TEMPLATE_VM_ID "$TEMPLATE_VM_CI_IMAGE"_tmp $TEMPLATE_VM_STORAGE > /dev/null 2>&1
+fi
 check_errors
 rm -f "$TEMPLATE_VM_CI_IMAGE"_tmp
 
 ACTION="Set disk controller and image"
-#if [[ "$pvever" > "7.3" ]]
-#then 
-qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0,discard=on > /dev/null 2>&1 
-#echo "ver 7.4 +"
-#else
-qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0.raw,discard=on > /dev/null 2>&1
-#echo "old ver"
-#fi
-#check_errors
+IMPORTED_DISK=$(qm config $TEMPLATE_VM_ID | awk '/^unused0:/ {print $2}')
+if [ -n "$IMPORTED_DISK" ]; then
+    qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 ${IMPORTED_DISK},discard=on > /dev/null 2>&1
+else
+    qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0,discard=on > /dev/null 2>&1 || \
+    qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-single --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0.raw,discard=on > /dev/null 2>&1
+fi
+check_errors
 
 if [ $TEMPLATE_VLANID ]; then
 ACTION="Set VALNID"
@@ -427,7 +454,11 @@ qm set $TEMPLATE_VM_ID --serial0 socket > /dev/null 2>&1
 check_errors
 
 ACTION="Set boot disk"
-qm set $TEMPLATE_VM_ID --boot c --bootdisk scsi0 > /dev/null 2>&1
+if [[ "$pve_major" -ge 7 ]]; then
+    qm set $TEMPLATE_VM_ID --boot order=scsi0 > /dev/null 2>&1
+else
+    qm set $TEMPLATE_VM_ID --boot c --bootdisk scsi0 > /dev/null 2>&1
+fi
 check_errors
 
 ACTION="Set Qemu Guest Agent Enabled"
@@ -445,7 +476,7 @@ check_errors
 #ACTION="Set vga display"
 #qm set $TEMPLATE_VM_ID --vga qxl > /dev/null 2>&1
 #check_errors
-if [[ "$pvever" > "8.0" ]]
+if [[ "$pve_major" -ge 8 ]]
  then
 ACTION="Set machine type"
 qm set $TEMPLATE_VM_ID --machine q35 --ostype l26 --cpu x86-64-v2-AES > /dev/null 2>&1
@@ -460,6 +491,12 @@ ACTION="Set name to $TEMPLATE_VM_NAME"
 qm set $TEMPLATE_VM_ID --name $TEMPLATE_VM_NAME > /dev/null 2>&1
 check_errors
 
+if [ -n "$TEMPLATE_VM_DESCRIPTION" ]; then
+ACTION="Set description"
+qm set $TEMPLATE_VM_ID --description "$TEMPLATE_VM_DESCRIPTION" > /dev/null 2>&1
+check_errors
+fi
+
 ACTION="Add users: $TEMPLATE_DEFAULT_USERNAME"
 qm set $TEMPLATE_VM_ID --ciuser $TEMPLATE_DEFAULT_USERNAME > /dev/null 2>&1
 check_errors
@@ -472,24 +509,35 @@ qm set $TEMPLATE_VM_ID --cipassword "$TEMPLATE_PASSWD" > /dev/null 2>&1
 check_errors
 fi
 
-hdd_size=`qm config $TEMPLATE_VM_ID |grep scsi0: | awk -F"=" '{print $3}' | grep M |sed s/[^0-9]//g`
-if [[ -n $hdd_size ]]
+current_size=$(qm config $TEMPLATE_VM_ID | grep '^scsi0:' | sed -n 's/.*size=\([^,]*\).*/\1/p')
+hdd_size=$(echo "$current_size" | grep M | sed 's/[^0-9]//g')
+hdd_size_g=$(echo "$current_size" | grep G | sed 's/[^0-9]//g')
+if [[ -n "$hdd_size" && "$hdd_size" -lt 5120 ]]
 then
 ACTION="Set image size to 5GB if the size is not in gigabytes"
 let "h_size = 5120 - $hdd_size"
 qm resize $TEMPLATE_VM_ID scsi0 +"$h_size"M > /dev/null 2>&1
 #qm resize $TEMPLATE_VM_ID scsi0 +17748M > /dev/null 2>&1
 check_errors
+elif [[ -n "$hdd_size_g" && "$hdd_size_g" -lt 5 ]]
+then
+ACTION="Set image size to 5GB if the size is less than 5GB"
+let "h_size_g = 5 - $hdd_size_g"
+qm resize $TEMPLATE_VM_ID scsi0 +"$h_size_g"G > /dev/null 2>&1
+check_errors
 fi
 
-if [ -z $TEMPLATE_VM_DISKSIZE ]; then
-hdd_size1=`qm config $TEMPLATE_VM_ID |grep scsi0: | awk -F"=" '{print $3}'`
+if [ -z "$TEMPLATE_VM_DISKSIZE" ]; then
+hdd_size1=$(qm config $TEMPLATE_VM_ID | grep '^scsi0:' | sed -n 's/.*size=\([^,]*\).*/\1/p')
 echo "hdd size now is: $hdd_size1" 
 else
+if [[ "$TEMPLATE_VM_DISKSIZE" =~ ^[0-9]+$ ]]; then
+    TEMPLATE_VM_DISKSIZE="${TEMPLATE_VM_DISKSIZE}G"
+fi
 ACTION="Set image size to $TEMPLATE_VM_DISKSIZE "
 qm resize $TEMPLATE_VM_ID scsi0 "$TEMPLATE_VM_DISKSIZE" > /dev/null 2>&1
 check_errors
-hdd_size1=`qm config $TEMPLATE_VM_ID |grep scsi0: | awk -F"=" '{print $3}'`
+hdd_size1=$(qm config $TEMPLATE_VM_ID | grep '^scsi0:' | sed -n 's/.*size=\([^,]*\).*/\1/p')
 echo "hdd size now is: $hdd_size1" 
 fi
 #Cloud INIT
@@ -498,7 +546,7 @@ qm set $TEMPLATE_VM_ID --ide2 $TEMPLATE_VM_STORAGE:cloudinit > /dev/null 2>&1
 check_errors
 
 ACTION="Set authorized ssh keys"
-qm set $TEMPLATE_VM_ID --sshkey ./pub_keys/id_rsa.pub > /dev/null 2>&1
+qm set $TEMPLATE_VM_ID --sshkeys ./pub_keys/id_rsa.pub > /dev/null 2>&1
 check_errors
 
 if [ $DHCP_USE == "YES" ]
@@ -527,7 +575,7 @@ select yn in "Yes" "No"; do
     esac
 done
 
-echo "Now, if VM is up and running, try access $TEMPLATE_DEFAULT_USER@$TEMPLATE_VM_IP_ADDR - or check your VM ip address on DHCP Server."
+echo "Now, if VM is up and running, try access $TEMPLATE_DEFAULT_USERNAME@$TEMPLATE_VM_IP_ADDR - or check your VM ip address on DHCP Server."
 echo ""
 echo "Finished"
 echo ""
